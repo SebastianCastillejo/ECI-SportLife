@@ -127,31 +127,9 @@ jobs:
       - name: Generar JAR para deploy
         run: mvn clean package -DskipTests -B
 
-      - name: Login en Azure
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.PRE_PARCIAL }}
-
-      - name: Configurar variables de entorno en Azure
-        run: |
-          az webapp config appsettings set \
-            --name preparcial \
-            --resource-group preparcial_group \
-            --settings \
-              SPRING_DATA_MONGODB_URI="${{ secrets.AZURE_MONGODB_URI }}" \
-              MONGODB_DATABASE="sportlife_db" \
-              JWT_SECRET="${{ secrets.JWT_SECRET }}" \
-              JWT_EXPIRATION="36000000" \
-              PORT="8080"
-
       - name: Deploy JAR a Azure App Service
         uses: azure/webapps-deploy@v3
         with:
           app-name: preparcial
+          publish-profile: ${{ secrets.PRE_PARCIAL }}
           package: target/*.jar
-
-      - name: Verificar despliegue
-        run: |
-          sleep 60
-          curl -f https://preparcial.azurewebsites.net/v3/api-docs \
-            || echo 'Revisar logs en Azure Portal'
